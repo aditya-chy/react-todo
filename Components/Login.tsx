@@ -1,3 +1,4 @@
+import { UserAction, UserState } from "@/pages";
 import {
   Button,
   Flex,
@@ -8,12 +9,13 @@ import {
   Stack,
   useColorModeValue,
 } from "@chakra-ui/react";
+import { Dispatch, useState } from "react";
 
 export default function Login(props: {
-  setUsername: Function;
-  setPassword: Function;
-  setLoggedIn: Function;
+  userDispatch: Dispatch<UserAction>;
 }) {
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   return (
     <Flex
       align={"center"}
@@ -38,7 +40,7 @@ export default function Login(props: {
           <Input
             placeholder="Your Username"
             _placeholder={{ color: "gray.500" }}
-            onChange={(e) => props.setUsername(e.target.value)}
+            onChange={(e) => setUsername(e.target.value)}
             type="email"
           />
         </FormControl>
@@ -47,14 +49,14 @@ export default function Login(props: {
           <Input
             type="password"
             placeholder="Your Password"
-            onChange={(e) => props.setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </FormControl>
         <Stack spacing={6}>
           <Button
             bg={"blue.400"}
             color={"white"}
-            onClick={() => props.setLoggedIn(true)}
+            onClick={() => props.userDispatch({ type: 'LOGIN', username, password })}
             _hover={{
               bg: "blue.500",
             }}

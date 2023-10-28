@@ -1,43 +1,28 @@
 import { Text, Flex } from "@chakra-ui/react";
-import { Task } from "@/pages/index";
+import { Task, TodoAction } from "@/pages/index";
 import TaskCard from "./TaskCard";
 import { AddTask } from "./AddTask";
+import { Dispatch } from "react";
 
 export default function TodoList(props: {
   username: string;
   tasks: Task[];
-  setTasks: Function;
+  todoDispatch: Dispatch<TodoAction>;
 }) {
   function addTask(task: Task) {
-    props.setTasks((tasks: Task[]) => [...tasks, task]);
+    props.todoDispatch({ type: "CREATE_TODO", task });
   }
 
   function completeTask(id: string) {
-    props.setTasks((tasks: Task[]) =>
-      tasks.map((task) => {
-        if (task.id === id) {
-          task.completed = true;
-          task.dateCompleted = new Date();
-        }
-        return task;
-      })
-    );
+    props.todoDispatch({ type: "TOGGLE_TODO", taskId: id });
   }
 
   function uncompleteTask(id: string) {
-    props.setTasks((tasks: Task[]) =>
-      tasks.map((task) => {
-        if (task.id === id) {
-          task.completed = false;
-          task.dateCompleted = undefined;
-        }
-        return task;
-      })
-    );
+    props.todoDispatch({ type: "TOGGLE_TODO", taskId: id });
   }
 
   function deleteTask(id: string) {
-    props.setTasks((tasks: Task[]) => tasks.filter((task) => task.id !== id));
+    props.todoDispatch({ type: "DELETE_TODO", taskId: id });
   }
 
   return (
@@ -50,7 +35,7 @@ export default function TodoList(props: {
         Here are your todos:
       </Text>
       <Flex direction="column" alignItems="center" width="100%">
-        {props.tasks.filter((task: Task) => !task.completed).length == 0 && (
+        {props.tasks.filter((task: Task) => !task.completed).length === 0 && (
           <Text fontSize="xl" textAlign="center" p={3}>
             Nothing here yet!
           </Text>
@@ -71,7 +56,7 @@ export default function TodoList(props: {
         Completed Tasks:
       </Text>
       <Flex direction="column" alignItems="center" width="100%">
-        {props.tasks.filter((task: Task) => task.completed).length == 0 && (
+        {props.tasks.filter((task: Task) => task.completed).length === 0 && (
           <Text fontSize="xl" textAlign="center" p={3}>
             Nothing here yet!
           </Text>
