@@ -1,7 +1,9 @@
-import React, { useState, useReducer } from 'react';
-import Login from '@/Components/Login';
-import TodoList from '@/Components/TodoList';
-import { Text, Divider, Flex, Button } from '@chakra-ui/react';
+import React, { useState, useReducer, useContext, useEffect } from "react";
+import Login from "@/Components/Login";
+import TodoList from "@/Components/TodoList";
+import { Text, Divider, Flex, Button } from "@chakra-ui/react";
+import { StateContext } from "@/Context/StateContext";
+import { useAxios } from "@/Context/AxiosContext";
 
 export class Task {
   id: string;
@@ -33,62 +35,33 @@ export interface UserState {
   loggedIn: boolean;
 }
 
-export type UserAction = { type: 'LOGIN', username: string, password: string } | { type: 'LOGOUT' };
-
-function userReducer(state: UserState, action: UserAction): UserState {
-  switch (action.type) {
-    case 'LOGIN':
-      return {
-        ...state,
-        loggedIn: true,
-      };
-    case 'LOGOUT':
-      return {
-        ...state,
-        loggedIn: false,
-      };
-    default:
-      return state;
-  }
-}
+export type UserAction =
+  | { type: "LOGIN"; username: string; password: string }
+  | { type: "LOGOUT" };
 
 export interface TodoState {
   tasks: Task[];
 }
 
 export type TodoAction =
-  | { type: 'CREATE_TODO'; task: Task }
-  | { type: 'TOGGLE_TODO'; taskId: string }
-  | { type: 'DELETE_TODO'; taskId: string };
-
-function todoReducer(state: TodoState, action: TodoAction): TodoState {
-  switch (action.type) {
-    case 'CREATE_TODO':
-      return { tasks: [...state.tasks, action.task] };
-    case 'TOGGLE_TODO':
-      return {
-        tasks: state.tasks.map((task) =>
-          task.id === action.taskId
-            ? {
-                ...task,
-                completed: !task.completed,
-                dateCompleted: task.completed ? undefined : new Date(),
-              }
-            : task
-        ),
-      };
-    case 'DELETE_TODO':
-      return {
-        tasks: state.tasks.filter((task) => task.id !== action.taskId),
-      };
-    default:
-      return state;
-  }
-}
+  | { type: "CREATE_TODO"; task: Task }
+  | { type: "TOGGLE_TODO"; taskId: string }
+  | { type: "DELETE_TODO"; taskId: string };
 
 export default function Home() {
-  const [userState, userDispatch] = useReducer(userReducer, { username: "", password: "", loggedIn: false });
-  const [todoState, todoDispatch] = useReducer(todoReducer, { tasks: [] });
+  const { userState, userDispatch, todoState, todoDispatch } = useContext(
+    StateContext
+  ) as any;
+  const axiosInstance = useAxios();
+
+  useEffect(() => {
+    axiosInstance("/api/tasks").then((todos: { data: Task[] }) => {
+      for (let todo of todos.data)
+        if (todo.author == userState.username) {
+          todoDispatch({ type: "CREATE_TODO", task: todo });
+        }
+    });
+  }, [userState]);
 
   return (
     <>
@@ -100,8 +73,8 @@ export default function Home() {
         {userState.loggedIn && (
           <Button
             onClick={() => {
-              userDispatch({ type: 'LOGOUT' });
-              todoDispatch({ type: 'DELETE_TODO', taskId: 'all' });
+              userDispatch({ type: "LOGOUT" });
+              todoDispatch({ type: "DELETE_TODO", taskId: "all" });
             }}
             variant="ghost"
           >
@@ -110,11 +83,13 @@ export default function Home() {
         )}
       </Flex>
       {!userState.loggedIn ? (
-        <Login
-          userDispatch={userDispatch}
-        />
+        <Login userDispatch={userDispatch} />
       ) : (
-        <TodoList username={userState.username} tasks={todoState.tasks} todoDispatch={todoDispatch} />
+        <TodoList
+          username={userState.username}
+          tasks={todoState.tasks}
+          todoDispatch={todoDispatch}
+        />
       )}
     </>
   );

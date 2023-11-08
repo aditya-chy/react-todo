@@ -34,13 +34,6 @@ export default function TaskCard(props: {
               {props.task.completed ? "✅" : "❌"}
             </Text>
           </Flex>
-          <Text fontWeight="semibold" fontSize="3 xl" float="right">
-            {props.task.completed ? "Completed" : "Created"} On:{" "}
-            {(props.task.completed || !props.task.dateCompleted
-              ? props.task.dateCreated
-              : props.task.dateCompleted
-            ).toLocaleDateString()}
-          </Text>
         </Flex>
       </Stack>
 

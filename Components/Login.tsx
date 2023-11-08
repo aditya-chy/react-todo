@@ -1,3 +1,4 @@
+import { useAxios } from "@/Context/AxiosContext";
 import { UserAction, UserState } from "@/pages";
 import {
   Button,
@@ -11,11 +12,11 @@ import {
 } from "@chakra-ui/react";
 import { Dispatch, useState } from "react";
 
-export default function Login(props: {
-  userDispatch: Dispatch<UserAction>;
-}) {
-  const [username, setUsername] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+export default function Login(props: { userDispatch: Dispatch<UserAction> }) {
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const axiosInstance = useAxios();
+
   return (
     <Flex
       align={"center"}
@@ -36,7 +37,7 @@ export default function Login(props: {
           Login/Register
         </Heading>
         <FormControl id="email" isRequired>
-          <FormLabel>Username</FormLabel>
+          <FormLabel>Email</FormLabel>
           <Input
             placeholder="Your Username"
             _placeholder={{ color: "gray.500" }}
@@ -56,7 +57,26 @@ export default function Login(props: {
           <Button
             bg={"blue.400"}
             color={"white"}
-            onClick={() => props.userDispatch({ type: 'LOGIN', username, password })}
+            onClick={async () => {
+              axiosInstance
+                .post("/api/register", {
+                  email: username,
+                  password,
+                })
+                .then(() =>
+                  props.userDispatch({ type: "LOGIN", username, password })
+                )
+                .catch(() =>
+                  axiosInstance
+                    .post("/api/login", {
+                      email: username,
+                      password,
+                    })
+                    .then(() =>
+                      props.userDispatch({ type: "LOGIN", username, password })
+                    )
+                );
+            }}
             _hover={{
               bg: "blue.500",
             }}
