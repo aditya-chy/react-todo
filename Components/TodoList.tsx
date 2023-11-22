@@ -13,23 +13,27 @@ export default function TodoList(props: {
   const axiosInstance = useAxios();
 
   function addTask(task: Task) {
-    axiosInstance.post("/api/tasks", task);
+    axiosInstance.post("/api/tasks/add", task);
     props.todoDispatch({ type: "CREATE_TODO", task });
+    location.reload();
   }
 
   function completeTask(id: string) {
-    axiosInstance.patch("/api/tasks/" + id, { completed: true });
+    axiosInstance.put("/api/tasks/" + id + "/complete", { completed: true });
     props.todoDispatch({ type: "TOGGLE_TODO", taskId: id });
+    location.reload();
   }
 
   function uncompleteTask(id: string) {
-    axiosInstance.patch("/api/tasks/" + id, { completed: false });
+    axiosInstance.put("/api/tasks/" + id + "/complete", { completed: false });
     props.todoDispatch({ type: "TOGGLE_TODO", taskId: id });
+    location.reload();
   }
 
   function deleteTask(id: string) {
     axiosInstance.delete("/api/tasks/" + id);
     props.todoDispatch({ type: "DELETE_TODO", taskId: id });
+    location.reload();
   }
 
   return (
@@ -51,7 +55,7 @@ export default function TodoList(props: {
           .filter((task: Task) => !task.completed)
           .map((task: Task) => (
             <TaskCard
-              key={task.id}
+              key={task._id}
               task={task}
               completeTask={completeTask}
               uncompleteTask={uncompleteTask}
@@ -72,7 +76,7 @@ export default function TodoList(props: {
           .filter((task: Task) => task.completed)
           .map((task: Task) => (
             <TaskCard
-              key={task.id}
+              key={task._id}
               task={task}
               completeTask={completeTask}
               uncompleteTask={uncompleteTask}

@@ -5,6 +5,7 @@ import { Stack, Text, Checkbox, Flex, Button } from "@chakra-ui/react";
 import { Task } from "@/pages";
 
 export default function TaskCard(props: {
+  key: string;
   task: Task;
   completeTask: Function;
   uncompleteTask: Function;
@@ -19,9 +20,9 @@ export default function TaskCard(props: {
               defaultChecked={props.task.completed}
               onChange={(e) => {
                 if (e.target.checked) {
-                  props.completeTask(props.task.id);
+                  props.completeTask(props.task._id);
                 } else {
-                  props.uncompleteTask(props.task.id);
+                  props.uncompleteTask(props.task._id);
                 }
               }}
               size="lg"
@@ -58,7 +59,7 @@ export default function TaskCard(props: {
           colorScheme="red"
           onClick={() =>
             confirm("Are You Sure You want to delete task?") &&
-            props.deleteTask(props.task.id)
+            props.deleteTask(props.task._id)
           }
         >
           Delete

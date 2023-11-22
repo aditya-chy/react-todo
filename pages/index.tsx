@@ -1,12 +1,13 @@
-import React, { useState, useReducer, useContext, useEffect } from "react";
+import React, { useState, useReducer, useRef, useContext, useEffect } from "react";
 import Login from "@/Components/Login";
 import TodoList from "@/Components/TodoList";
 import { Text, Divider, Flex, Button } from "@chakra-ui/react";
 import { StateContext } from "@/Context/StateContext";
 import { useAxios } from "@/Context/AxiosContext";
+import { jwtDecode } from "jwt-decode";
 
 export class Task {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   author: string;
@@ -20,7 +21,7 @@ export class Task {
     author: string,
     dateCreated: Date
   ) {
-    this.id = Math.random().toString(36).substr(2, 9);
+    this._id = "",
     this.title = title;
     this.description = description;
     this.author = author;
@@ -55,13 +56,31 @@ export default function Home() {
   const axiosInstance = useAxios();
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const decodedToken: any = jwtDecode(token);
+      const { username } = decodedToken;
+      userDispatch({ type: "LOGIN", username, password: "" });
+    } catch (error) {
+      console.error('Error decoding token:', error);
+    }
+  }
+  }, []);
+
+  const done = useRef(false);
+
+  useEffect(() => {
+    if (done.current) return;
+    done.current = true;
     axiosInstance("/api/tasks").then((todos: { data: Task[] }) => {
+      todoDispatch({ type: "DELETE_TODO", taskId: "all" });
       for (let todo of todos.data)
-        if (todo.author == userState.username) {
-          todoDispatch({ type: "CREATE_TODO", task: todo });
-        }
+        todoDispatch({ type: "CREATE_TODO", task: todo });
+    }).catch(() => {
+      // userDispatch({ type: "LOGOUT" });
     });
-  }, [userState]);
+  }, []);
 
   return (
     <>
@@ -74,7 +93,7 @@ export default function Home() {
           <Button
             onClick={() => {
               userDispatch({ type: "LOGOUT" });
-              todoDispatch({ type: "DELETE_TODO", taskId: "all" });
+              localStorage.setItem("token", "");
             }}
             variant="ghost"
           >

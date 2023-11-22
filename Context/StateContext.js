@@ -49,7 +49,7 @@ function todoReducer(state, action) {
       };
     case 'DELETE_TODO':
       return {
-        tasks: state.tasks.filter((task) => task.id !== action.taskId),
+        tasks: state.tasks.filter((task) => action.taskId != "all" || task._id !== action.taskId),
       };
     default:
       return state;

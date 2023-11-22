@@ -9,6 +9,7 @@ import {
   Input,
   Stack,
   useColorModeValue,
+  useToast,
 } from "@chakra-ui/react";
 import { Dispatch, useState } from "react";
 
@@ -16,6 +17,7 @@ export default function Login(props: { userDispatch: Dispatch<UserAction> }) {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const axiosInstance = useAxios();
+  const toast = useToast();
 
   return (
     <Flex
@@ -41,7 +43,7 @@ export default function Login(props: { userDispatch: Dispatch<UserAction> }) {
           <Input
             placeholder="Your Username"
             _placeholder={{ color: "gray.500" }}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e: any) => setUsername(e.target.value)}
             type="email"
           />
         </FormControl>
@@ -50,7 +52,7 @@ export default function Login(props: { userDispatch: Dispatch<UserAction> }) {
           <Input
             type="password"
             placeholder="Your Password"
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: any) => setPassword(e.target.value)}
           />
         </FormControl>
         <Stack spacing={6}>
@@ -58,24 +60,30 @@ export default function Login(props: { userDispatch: Dispatch<UserAction> }) {
             bg={"blue.400"}
             color={"white"}
             onClick={async () => {
-              axiosInstance
-                .post("/api/register", {
-                  email: username,
+              try {
+                await axiosInstance.post("/api/register", {
+                  username,
                   password,
-                })
-                .then(() =>
-                  props.userDispatch({ type: "LOGIN", username, password })
-                )
-                .catch(() =>
-                  axiosInstance
-                    .post("/api/login", {
-                      email: username,
-                      password,
-                    })
-                    .then(() =>
-                      props.userDispatch({ type: "LOGIN", username, password })
-                    )
-                );
+                });
+                // If registration succeeds, proceed with login
+                const loginResponse = await axiosInstance.post("/api/login", {
+                  username,
+                  password,
+                });
+                const { token } = loginResponse.data;
+                localStorage.setItem("token", token); // Save token in localStorage
+                props.userDispatch({ type: "LOGIN", username, password }); // Dispatch login action
+                toast({
+                  title: "Succesfully Logged In",
+                  status: "success",
+                });
+              } catch (error) {
+                console.error("Authentication failed:", error);
+                toast({
+                  title: "Error Logging In",
+                  status: "error",
+                });
+              }
             }}
             _hover={{
               bg: "blue.500",
